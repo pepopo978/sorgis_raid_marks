@@ -14,7 +14,7 @@ do
         return function(...)
             local msg = ""
             for i, v in ipairs(arg) do
-                msg = msg .. tostring(v) 
+                msg = msg .. tostring(v)
             end
 
             DEFAULT_CHAT_FRAME:AddMessage(msg, r, g, b)
@@ -36,8 +36,8 @@ srm.unitIsAlive = function(aUnitID)
     return UnitIsDead(aUnitID) == nil
 end
 
-srm.unitExists = function(aUnitID) 
-    return UnitExists(aUnitID) ~= nil 
+srm.unitExists = function(aUnitID)
+    return UnitExists(aUnitID) ~= nil
 end
 
 srm.unitHasRaidMark = function(aUnitID, aMark)
@@ -73,7 +73,7 @@ srm.markUnitWithRaidMark = function(aMark, aUnitID)
 
     if markIndex == nil then return end
 
-    SetRaidTarget(aUnitID, markIndex) 
+    SetRaidTarget(aUnitID, markIndex)
 end
 
 srm.playerIsInRaid = function()
@@ -90,7 +90,7 @@ do
         local attackSlotIndex
         getAttackSlotIndex = function()
             if attackSlotIndex == nil then
-                for slotIndex = 1, 120 do 
+                for slotIndex = 1, 120 do
                     if IsAttackAction(slotIndex) then
                         attackSlotIndex = slotIndex
                         break
@@ -113,12 +113,12 @@ do
     srm.startAttack = function()
         local attackSlotIndex = getAttackSlotIndex()
 
-        if not attackSlotIndex then 
-            srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars") 
+        if not attackSlotIndex then
+            srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars")
             return
         end
 
-        if not IsCurrentAction(attackSlotIndex) then 
+        if not IsCurrentAction(attackSlotIndex) then
             UseAction(attackSlotIndex)
         end
     end
@@ -138,7 +138,7 @@ do
 
     local RAID_UNIT_IDS = (function()
         local units = {}
-        
+
         for i = 1, 40 do table.insert(units, "raid" .. i) end
         for i = 1, 40 do table.insert(units, "raid" .. i .. "target") end
         for i = 1, 40 do table.insert(units, "raid" .. i .. "targettarget") end
@@ -158,7 +158,7 @@ do
         for i = 1, 5 do table.insert(units, "partypet" .. i) end
         for i = 1, 5 do table.insert(units, "partypet" .. i .. "target") end
         for i = 1, 5 do table.insert(units, "partypet" .. i .. "targettarget") end
-        
+
         return units
     end)()
 
@@ -167,7 +167,7 @@ do
             if aVisitor(aUnitID) == true then return true end
         end
 
-        for _, aUnitID in pairs(srm.playerIsInRaid() and RAID_UNIT_IDS or 
+        for _, aUnitID in pairs(srm.playerIsInRaid() and RAID_UNIT_IDS or
             srm.playerIsInParty() and PARTY_UNIT_IDS or {}) do
             if aVisitor(aUnitID) == true then return true end
         end
@@ -178,7 +178,7 @@ do
     srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark)
         return srm.visitUnitIDs(function(aUnitID)
             if srm.unitHasRaidMark(aUnitID, aMark) and srm.unitIsAlive(aUnitID) then
-                TargetUnit(aUnitID)   
+                TargetUnit(aUnitID)
                 return true
             end
         end)
@@ -186,16 +186,16 @@ do
 end
 
 do
-    local visitNamePlates 
+    local visitNamePlates
     do
-        local namePlates = {} 
+        local namePlates = {}
         local lastWorldFrameChildCount = 0
 
         visitNamePlates = function(aVisitor)
             local getNamePlates = function()
                 local worldFrameChildCount = WorldFrame:GetNumChildren()
                 if lastWorldFrameChildCount < worldFrameChildCount then
-                    local worldFrames = {WorldFrame:GetChildren()}
+                    local worldFrames = { WorldFrame:GetChildren() }
                     for index = lastWorldFrameChildCount, worldFrameChildCount do
                         local plate = worldFrames[index]
                         if plate ~= nil and plate:GetName() == nil then
@@ -207,11 +207,11 @@ do
                                 local _, shaguplate = plate:GetChildren()
                                 if shaguplate ~= nil and type(shaguplate.platename) == "string" then
                                     local adapterplate = {}
-                                    adapterplate.IsVisible = function(self) 
+                                    adapterplate.IsVisible = function(self)
                                         return shaguplate:IsVisible()
                                     end
                                     adapterplate.Click = function(self)
-                                        plate:Click() 
+                                        plate:Click()
                                     end
                                     adapterplate.raidicon = shaguplate.raidicon
 
@@ -240,24 +240,24 @@ do
     local raidIconUVsToMarkName = function(aU, aV)
         local key = tostring(aU) .. "," .. tostring(aV)
         local UV_TO_RAID_ICONS = {
-            ["0.75,0.25"] = "skull", 
-            ["0.5,0.25"] = "cross", 
-            ["0,0.25"] = "moon", 
-            ["0,0"] = "star", 
-            ["0.75,0"] = "triangle", 
-            ["0.25,0"] = "circle", 
-            ["0.25,0.25"] = "square", 
-            ["0.5,0"] = "diamond", 
+            ["0.75,0.25"] = "skull",
+            ["0.5,0.25"] = "cross",
+            ["0,0.25"] = "moon",
+            ["0,0"] = "star",
+            ["0.75,0"] = "triangle",
+            ["0.25,0"] = "circle",
+            ["0.25,0.25"] = "square",
+            ["0.5,0"] = "diamond",
         }
         return UV_TO_RAID_ICONS[key]
     end
 
     srm.tryTargetRaidMarkInNamePlates = function(aRaidMark)
         return visitNamePlates(function(plate)
-            if plate.raidicon:IsVisible() ~= nil then 
+            if plate.raidicon:IsVisible() ~= nil then
                 local u, v = plate.raidicon:GetTexCoord()
                 if raidIconUVsToMarkName(u, v) == aRaidMark then
-                    plate:Click() 
+                    plate:Click()
                     return true
                 end
             end
@@ -266,7 +266,7 @@ do
 end
 
 srm.tryTargetMark = function(aRaidMark)
-    return srm.tryTargetUnitWithRaidMarkFromGroupMembers(aRaidMark) or 
+    return srm.tryTargetUnitWithRaidMarkFromGroupMembers(aRaidMark) or
         srm.tryTargetRaidMarkInNamePlates(aRaidMark)
 end
 
@@ -322,11 +322,41 @@ end)
 srm.makeSlashCommand("setmarkifunmarked", function(msg)
     local matches = string.gfind(msg, "\(%w+\)")
 
-    local mark = matches()
-    local unitID = matches()
+    local targetMark = matches()
+    local unitID = matches() or "target"
 
-    if not GetRaidTargetIndex(unitID) then 
-        srm.markUnitWithRaidMark(mark, unitID)
+    local unitMark = ({
+        [1] = "star",
+        [2] = "circle",
+        [3] = "diamond",
+        [4] = "triangle",
+        [5] = "moon",
+        [6] = "square",
+        [7] = "cross",
+        [8] = "skull",
+    })[GetRaidTargetIndex(unitID)] or nil
+
+    if not unitMark then
+        srm.markUnitWithRaidMark(targetMark, unitID)
+    elseif unitMark ~= targetMark then
+        -- output error only if unit has a different mark
+        srm.error("UNIT ALREADY MARKED " .. unitMark)
+    end
+end)
+
+srm.makeSlashCommand("castspellifhasmark", function(msg)
+    -- require quotes around each argument to allow for spaces
+    -- for example /castspellifhasmark "moon" "Polymorph: Pig"
+    local matches = string.gfind(msg, "\"\(.-\)\"")
+
+    local targetMark = matches()
+    local spell = matches()
+    local unitID = matches() or "target"
+
+    if srm.unitHasRaidMark(unitID, targetMark) then
+        CastSpellByName(spell)
+    else
+        srm.error("UNIT DOES NOT HAVE MARK " .. targetMark .. " SKIPPING CAST")
     end
 end)
 
@@ -341,7 +371,7 @@ do
         local rootFrame = CreateFrame("Frame", nil, UIParent)
         rootFrame:SetWidth(1)
         rootFrame:SetHeight(1)
-        rootFrame:SetPoint("TOPLEFT", 0,0)
+        rootFrame:SetPoint("TOPLEFT", 0, 0)
         rootFrame:SetMovable(true)
 
         local makeRaidMarkFrame = function(aX, aY, aMark)
@@ -349,10 +379,10 @@ do
 
             local frame = CreateFrame("Button", nil, rootFrame)
             frame:SetFrameStrata("BACKGROUND")
-            frame:SetWidth(SIZE) 
+            frame:SetWidth(SIZE)
             frame:SetHeight(SIZE)
             frame:SetPoint("CENTER", aX * SIZE, aY * SIZE)
-            frame:Show() 
+            frame:Show()
 
             do
                 frame:EnableMouse(true)
@@ -365,7 +395,7 @@ do
                             srm.tryTargetMark(aMark)
                         end
                     elseif arg1 == "RightButton" then
-                        srm.(aMark)
+                        srm.tryAttackMark(aMark)
                     end
                 end)
             end
@@ -396,19 +426,19 @@ do
             raidMarkTexture:SetHeight(SIZE)
 
             local markNameToTextCoords = {
-                ["star"] =     {0.00,0.25,0.00,0.25},
-                ["circle"] =   {0.25,0.50,0.00,0.25},
-                ["diamond"] =  {0.50,0.75,0.00,0.25},
-                ["triangle"] = {0.75,1.00,0.00,0.25},
-                ["moon"] =     {0.00,0.25,0.25,0.50},
-                ["square"] =   {0.25,0.50,0.25,0.50},
-                ["cross"] =    {0.50,0.75,0.25,0.50},
-                ["skull"] =    {0.75,1.00,0.25,0.50},
+                ["star"] = { 0.00, 0.25, 0.00, 0.25 },
+                ["circle"] = { 0.25, 0.50, 0.00, 0.25 },
+                ["diamond"] = { 0.50, 0.75, 0.00, 0.25 },
+                ["triangle"] = { 0.75, 1.00, 0.00, 0.25 },
+                ["moon"] = { 0.00, 0.25, 0.25, 0.50 },
+                ["square"] = { 0.25, 0.50, 0.25, 0.50 },
+                ["cross"] = { 0.50, 0.75, 0.25, 0.50 },
+                ["skull"] = { 0.75, 1.00, 0.25, 0.50 },
             }
             raidMarkTexture:SetTexCoord(unpack(markNameToTextCoords[aMark]))
 
             raidMark.setScale = function(aScale)
-                frame:SetWidth(aScale) 
+                frame:SetWidth(aScale)
                 frame:SetHeight(aScale)
                 frame:SetPoint("CENTER", aX * aScale, aY * aScale)
                 raidMarkTexture:SetWidth(aScale)
@@ -423,14 +453,14 @@ do
         end
 
         local trayButtons = {}
-        table.insert(trayButtons, makeRaidMarkFrame(0,0, "star"))
-        table.insert(trayButtons, makeRaidMarkFrame(1,0, "circle"))
-        table.insert(trayButtons, makeRaidMarkFrame(2,0, "diamond"))
-        table.insert(trayButtons, makeRaidMarkFrame(3,0, "triangle"))
-        table.insert(trayButtons, makeRaidMarkFrame(4,0, "moon"))
-        table.insert(trayButtons, makeRaidMarkFrame(5,0, "square"))
-        table.insert(trayButtons, makeRaidMarkFrame(6,0, "cross"))
-        table.insert(trayButtons, makeRaidMarkFrame(7,0, "skull"))
+        table.insert(trayButtons, makeRaidMarkFrame(0, 0, "star"))
+        table.insert(trayButtons, makeRaidMarkFrame(1, 0, "circle"))
+        table.insert(trayButtons, makeRaidMarkFrame(2, 0, "diamond"))
+        table.insert(trayButtons, makeRaidMarkFrame(3, 0, "triangle"))
+        table.insert(trayButtons, makeRaidMarkFrame(4, 0, "moon"))
+        table.insert(trayButtons, makeRaidMarkFrame(5, 0, "square"))
+        table.insert(trayButtons, makeRaidMarkFrame(6, 0, "cross"))
+        table.insert(trayButtons, makeRaidMarkFrame(7, 0, "skull"))
 
         local gui = {}
 
@@ -479,17 +509,17 @@ do
 
         gui.getPosition = function()
             local a, b, c, x, y = rootFrame:GetPoint()
-            
+
             return x, y
         end
         gui.setPosition = function(x, y)
             rootFrame:SetPoint("TOPLEFT", x, y)
 
-            sorgis_raid_marks.position = {gui.getPosition()} 
+            sorgis_raid_marks.position = { gui.getPosition() }
         end
         for _, button in pairs(trayButtons) do
             button.onDragStop = function()
-                sorgis_raid_marks.position = {gui.getPosition()} 
+                sorgis_raid_marks.position = { gui.getPosition() }
             end
         end
 
@@ -497,10 +527,10 @@ do
             gui.setMovable(true)
             gui.setVisibility(true)
             gui.setScale(32)
-       
+
             w = rootFrame:GetParent():GetWidth()
             h = rootFrame:GetParent():GetHeight()
-            gui.setPosition(w/2,h/2*-1)
+            gui.setPosition(w / 2, h / 2 * -1)
         end
 
         rootFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -518,7 +548,7 @@ do
                 else
                     w = rootFrame:GetParent():GetWidth()
                     h = rootFrame:GetParent():GetHeight()
-                    gui.setPosition(w/2,h/2*-1)
+                    gui.setPosition(w / 2, h / 2 * -1)
                 end
             end
         end)
@@ -559,26 +589,26 @@ do
             end
         },
         ["reset"] = {
-            "moves tray to center of the screen, resets all settings", 
+            "moves tray to center of the screen, resets all settings",
             function()
                 gui.reset()
             end
         },
         ["scale"] = {
-            "resize the tray if given a number. Prints the current scale value if no number provided", 
+            "resize the tray if given a number. Prints the current scale value if no number provided",
             function(aScale)
                 if aScale then
-                    gui.setScale(tonumber(aScale)) 
+                    gui.setScale(tonumber(aScale))
                 end
 
                 srm.log("scale is: ", gui.getScale())
             end
         },
     }
-     
+
     srm.makeSlashCommand("sraidmarks", function(msg)
         local arg = {}
-        
+
         for word in string.gfind(msg, "\(%w+\)") do
             table.insert(arg, word)
         end
@@ -589,11 +619,10 @@ do
             local commandsString = ""
             for command, value in pairs(commands) do
                 commandsString = commandsString .. "`" .. _G.SLASH_SRAIDMARKS1 .. " " .. command ..
-                "` : " .. value[1] .. "\n"
-            end 
+                    "` : " .. value[1] .. "\n"
+            end
 
             srm.log(commandsString)
         end)(unpack(arg))
     end)
 end
-
