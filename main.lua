@@ -319,6 +319,17 @@ srm.makeSlashCommand("setmark", function(msg)
     srm.markUnitWithRaidMark(mark, unitID)
 end)
 
+srm.makeSlashCommand("setmarkifunmarked", function(msg)
+    local matches = string.gfind(msg, "\(%w+\)")
+
+    local mark = matches()
+    local unitID = matches()
+
+    if not GetRaidTargetIndex(unitID) then 
+        srm.markUnitWithRaidMark(mark, unitID)
+    end
+end)
+
 --------------------
 -- USER INTERFACE
 --------------------
@@ -354,7 +365,7 @@ do
                             srm.tryTargetMark(aMark)
                         end
                     elseif arg1 == "RightButton" then
-                        srm.tryAttackMark(aMark)
+                        srm.(aMark)
                     end
                 end)
             end
