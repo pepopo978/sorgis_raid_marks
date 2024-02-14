@@ -40,8 +40,8 @@ srm.unitExists = function(aUnitID)
     return UnitExists(aUnitID) ~= nil
 end
 
-srm.unitHasRaidMark = function(aUnitID, aMark)
-    local unitMark = ({
+srm.getUnitMark = function(aUnitID)
+    return ({
         [1] = "star",
         [2] = "circle",
         [3] = "diamond",
@@ -51,8 +51,10 @@ srm.unitHasRaidMark = function(aUnitID, aMark)
         [7] = "cross",
         [8] = "skull",
     })[GetRaidTargetIndex(aUnitID)] or nil
+end
 
-    return aMark == unitMark
+srm.unitHasRaidMark = function(aUnitID, aMark)
+    return aMark == srm.getUnitMark(aUnitID)
 end
 
 srm.markUnitWithRaidMark = function(aMark, aUnitID)
@@ -279,6 +281,17 @@ srm.tryAttackMark = function(aRaidMark)
     return false
 end
 
+srm.useItemByName = function(itemName)
+    for bag = 0, 4 do
+        for slot = 1, GetContainerNumSlots(bag) do
+            local item = GetContainerItemLink(bag, slot)
+            if item and string.find(item, itemName) then
+                UseContainerItem(bag, slot)
+                return
+            end
+        end
+    end
+end
 ---------------------
 -- BINDINGS
 ---------------------
@@ -325,16 +338,7 @@ srm.makeSlashCommand("setmarkifunmarked", function(msg)
     local targetMark = matches()
     local unitID = matches() or "target"
 
-    local unitMark = ({
-        [1] = "star",
-        [2] = "circle",
-        [3] = "diamond",
-        [4] = "triangle",
-        [5] = "moon",
-        [6] = "square",
-        [7] = "cross",
-        [8] = "skull",
-    })[GetRaidTargetIndex(unitID)] or nil
+    local unitMark = srm.getUnitMark(unitID)
 
     if not unitMark then
         srm.markUnitWithRaidMark(targetMark, unitID)
@@ -357,6 +361,54 @@ srm.makeSlashCommand("castspellifhasmark", function(msg)
         CastSpellByName(spell)
     else
         srm.error("UNIT DOES NOT HAVE MARK " .. targetMark .. " SKIPPING CAST")
+    end
+end)
+
+srm.makeSlashCommand("castspellifunmarked", function(msg)
+    -- require quotes around each argument to allow for spaces
+    -- for example /castspellifunmarked "Polymorph: Pig"
+    local matches = string.gfind(msg, "\"\(.-\)\"")
+
+    local spell = matches()
+    local unitID = matches() or "target"
+    local mark = srm.getUnitMark(unitID)
+
+    if mark == nil then
+        CastSpellByName(spell)
+    else
+        srm.error("UNIT HAS MARK " .. mark .. " SKIPPING CAST")
+    end
+end)
+
+srm.makeSlashCommand("useifhasmark", function(msg)
+    -- require quotes around each argument to allow for spaces
+    -- for example /useifhasmark "moon" "Magic Dust"
+    local matches = string.gfind(msg, "\"\(.-\)\"")
+
+    local targetMark = matches()
+    local itemName = matches()
+    local unitID = matches() or "target"
+
+    if srm.unitHasRaidMark(unitID, targetMark) then
+        srm.useItemByName(itemName)
+    else
+        srm.error("UNIT DOES NOT HAVE MARK " .. targetMark .. " SKIPPING USE OF " .. itemName)
+    end
+end)
+
+srm.makeSlashCommand("useifunmarked", function(msg)
+    -- require quotes around each argument to allow for spaces
+    -- for example /useifunmarked "Magic Dust"
+    local matches = string.gfind(msg, "\"\(.-\)\"")
+
+    local itemName = matches()
+    local unitID = matches() or "target"
+    local mark = srm.getUnitMark(unitID)
+
+    if mark == nil then
+        srm.useItemByName(itemName)
+    else
+        srm.error("UNIT HAS MARK " .. mark .. " SKIPPING USE OF " .. itemName)
     end
 end)
 
